@@ -11,12 +11,14 @@ $(document).ready(function() {
             $(this).prop("value", "Podaj swoje imie");
     });
     $("#tresc").focusout(function() {
-        $(this).prop("value", "Napisz coś ...");
+        if($(this).val() == "")
+            $(this).prop("value", "Napisz coś ...");
     });
     
     $("#tresc").keydown(function(event) {
-        if(event.which == 13)
+        if(event.which == 13) {
             $("#wyslij").click();
+        }
     });
     $("#wyslij").click(function() {
         imie = $("#nazwa").val();
@@ -24,17 +26,29 @@ $(document).ready(function() {
         $.ajax({
             type: "post",
             url: "wyslij.php",
-            dataType: "json",
             data: {
                 nazwa: imie,
                 tresc: tekst
             }
         })
         .done(function(response) {
-            console.log(response);
+            $("#tresc").prop("value", "Napisz coś ...");
         })
-        .fail(function() {
-            console.log("błąd");
+        .fail( function(error) {
+            alert(error.status);
         });
     });
+    setInterval(function() {
+    $.ajax({
+        type: "post",
+        url: "odczytaj.php"
+    })
+    .done(function(response) {        
+        $("#rozmowa").empty();
+        stare_wiadomosci = JSON.parse(response);
+        stare_wiadomosci.forEach(el => {
+            $("#rozmowa").append("<div class = 'watek'><div class = 'imie'> " + el.nazwa + "</div><div class = 'tresc'>" + el.tresc + "</div></div>");
+        });
+        console.log("Pobrano dane");
+    });}, 200);
 });
